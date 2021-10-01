@@ -7,13 +7,27 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @sort_key = params[:sort_by]
+    if request.env['PATH_INFO'] == '/'
+      session.clear
+    end
+
+    if params[:sort_by]
+      session[:sort_by] = params[:sort_by]
+      @sort_key = params[:sort_by]
+    elsif session[:sort_by]
+      @sort_key = session[:sort_by]
+    end
+    
+    #@sort_key = params[:sort_by]
+    
     @all_ratings = Movie.get_all_ratings_types
-    ratings = params[:ratings].nil? ? @all_ratings : params[:ratings].keys
+    ratings = params[:ratings].nil? ? ((session[:ratings_selected].nil? ) ? @all_ratings : session[:ratings_selected]) : params[:ratings].keys
+    #ratings = params[:ratings].nil? ? @all_ratings : params[:ratings].keys
     @ratings_selected = ratings
     
     @movies = Movie.with_ratings(ratings).order(@sort_key)
     
+    session[:ratings_selected] = ratings
   end
 
   def new
